@@ -1,0 +1,1100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Traffic Management System</title>
+
+<style>
+:root {
+  --bg: #07111f;
+  --panel: #101f33;
+  --border: #263d59;
+  --text: #edf4ff;
+  --muted: #9db0ca;
+  --green: #16d9a0;
+  --red: #ff4d5a;
+  --yellow: #ffca45;
+  --blue: #3182f6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+}
+
+header {
+  padding: 22px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: #0c192b;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.brand-icon {
+  font-size: 38px;
+}
+
+h1 {
+  font-size: clamp(22px, 3vw, 32px);
+  margin-bottom: 7px;
+}
+
+h1 span {
+  color: var(--green);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.header-status {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  background: #152842;
+  padding: 11px 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.status-pill strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.status-dot {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 6px;
+}
+
+main {
+  padding: 24px 5%;
+  max-width: 1600px;
+  margin: auto;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  gap: 20px;
+}
+
+.left-column, .right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.panel h2 {
+  font-size: 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.panel h2 span {
+  color: var(--green);
+}
+
+.intersection {
+  position: relative;
+  min-height: 430px;
+  height: 460px;
+  background:
+    linear-gradient(90deg, transparent 47%, #253448 47%, #253448 53%, transparent 53%),
+    linear-gradient(0deg, transparent 38%, #253448 38%, #253448 62%, transparent 62%),
+    repeating-linear-gradient(0deg, #193e2b 0 38px, #204b32 38px 76px);
+  border: 1px solid #35516d;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.road {
+  position: absolute;
+  background: #273548;
+}
+
+.road.vertical {
+  width: 34%;
+  height: 100%;
+  left: 33%;
+  top: 0;
+  border-left: 3px solid #c7d0dc;
+  border-right: 3px solid #c7d0dc;
+}
+
+.road.horizontal {
+  width: 100%;
+  height: 34%;
+  left: 0;
+  top: 33%;
+  border-top: 3px solid #c7d0dc;
+  border-bottom: 3px solid #c7d0dc;
+}
+
+.lane-line {
+  position: absolute;
+  z-index: 1;
+  opacity: .85;
+}
+
+.lane-line.vertical {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  background: repeating-linear-gradient(
+    to bottom, #dce5f0 0 20px, transparent 20px 38px
+  );
+}
+
+.lane-line.horizontal {
+  height: 2px;
+  width: 100%;
+  top: 50%;
+  background: repeating-linear-gradient(
+    to right, #dce5f0 0 20px, transparent 20px 38px
+  );
+}
+
+.center-mark {
+  position: absolute;
+  z-index: 2;
+  width: 30%;
+  height: 30%;
+  top: 35%;
+  left: 35%;
+  background: #1c293a;
+  border: 2px dashed #627287;
+  border-radius: 8px;
+}
+
+.direction-label {
+  position: absolute;
+  z-index: 5;
+  background: #0b1729;
+  border: 1px solid #526780;
+  border-radius: 6px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.direction-label.north { top: 10px; left: 50%; transform: translateX(-50%); }
+.direction-label.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.direction-label.east { right: 10px; top: 50%; transform: translateY(-50%); }
+.direction-label.west { left: 10px; top: 50%; transform: translateY(-50%); }
+
+.signal {
+  position: absolute;
+  z-index: 6;
+  background: #081321;
+  border: 2px solid #5a718a;
+  border-radius: 9px;
+  padding: 7px;
+  display: flex;
+  gap: 5px;
+  box-shadow: 0 5px 15px #0005;
+}
+
+.signal.vertical-signal {
+  flex-direction: column;
+}
+
+.signal.north { top: 25%; left: 56%; }
+.signal.south { bottom: 25%; left: 37%; }
+.signal.east { top: 55%; right: 29%; }
+.signal.west { top: 35%; left: 29%; }
+
+.light {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: #293b4d;
+  border: 1px solid #506074;
+}
+
+.light.red.on { background: var(--red); box-shadow: 0 0 12px var(--red); }
+.light.yellow.on { background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+.light.green.on { background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+.vehicle {
+  position: absolute;
+  z-index: 4;
+  font-size: 22px;
+  transition: top .8s ease, left .8s ease;
+}
+
+.car1 { left: 42%; top: 12%; }
+.car2 { left: 54%; top: 19%; }
+.car3 { left: 15%; top: 42%; }
+.car4 { left: 23%; top: 54%; }
+.car5 { left: 76%; top: 43%; }
+.car6 { left: 83%; top: 54%; }
+.car7 { left: 43%; top: 78%; }
+.car8 { left: 55%; top: 84%; }
+
+.queue-grid, .stats-grid, .signal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.queue-card, .stat-card, .signal-card {
+  border: 1px solid var(--border);
+  background: #0b1a2d;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.queue-card {
+  min-width: 0;
+}
+
+.queue-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.queue-count {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.queue-bars {
+  display: flex;
+  gap: 3px;
+}
+
+.queue-bar {
+  flex: 1;
+  min-width: 0;
+  height: 9px;
+  background: #263b55;
+  border-radius: 2px;
+}
+
+.queue-bar.filled {
+  background: var(--bar-color, var(--blue));
+}
+
+.signal-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signal-preview {
+  width: 40px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.signal-preview .light {
+  width: 9px;
+  height: 9px;
+}
+
+.signal-card h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.signal-card p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.signal-state {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.state-red { color: var(--red); }
+.state-yellow { color: var(--yellow); }
+.state-green { color: var(--green); }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 12px 10px;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  transition: opacity .2s, transform .2s;
+}
+
+.btn:hover {
+  opacity: .88;
+  transform: translateY(-1px);
+}
+
+.btn-green { background: #079c75; }
+.btn-red { background: #e23b4b; }
+.btn-blue { background: #2469df; }
+.btn-gray { background: #30435b; }
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 18px 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 15px 0;
+  font-size: 14px;
+}
+
+.toggle {
+  width: 42px;
+  height: 23px;
+  background: #34475f;
+  border-radius: 20px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  background: #dce8f7;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: left .2s;
+}
+
+.toggle.active {
+  background: var(--green);
+}
+
+.toggle.active::after {
+  left: 22px;
+  background: #063d31;
+}
+
+.toggle[aria-checked="true"] {
+  outline: 1px solid #ffffff35;
+}
+
+.stat-card .stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.stat-card strong {
+  font-size: 23px;
+}
+
+.stat-icon {
+  font-size: 21px;
+  margin-bottom: 8px;
+}
+
+.notice {
+  padding: 12px;
+  border-radius: 8px;
+  background: #122b38;
+  border: 1px solid #205344;
+  color: #a7f3d8;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
+.notice.warning {
+  background: #35251d;
+  border-color: #76502c;
+  color: #ffdcab;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 22px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+@media (max-width: 1050px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+  .intersection {
+    height: 420px;
+  }
+}
+
+@media (max-width: 600px) {
+  header, main {
+    padding: 18px 4%;
+  }
+  .panel {
+    padding: 14px;
+  }
+  .intersection {
+    height: 350px;
+    min-height: 350px;
+  }
+  .queue-grid, .signal-grid, .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .signal-card {
+    padding: 10px;
+    gap: 8px;
+  }
+  .signal-card h3 {
+    font-size: 13px;
+  }
+  .signal-card p {
+    font-size: 11px;
+  }
+  .brand-icon {
+    font-size: 28px;
+  }
+  .header-status {
+    width: 100%;
+  }
+  .status-pill {
+    flex: 1;
+  }
+  .signal.north { left: 57%; }
+  .signal.south { left: 32%; }
+  .signal.east { right: 25%; }
+  .signal.west { left: 25%; }
+  .light {
+    width: 12px;
+    height: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-icon">🚦</div>
+    <div>
+      <h1>Smart <span>Traffic Management</span></h1>
+      <p class="subtitle">Smoother traffic · Safer roads · Smarter cities</p>
+    </div>
+  </div>
+
+  <div class="header-status">
+    <div class="status-pill">
+      <strong>🚗 Auto Mode</strong>
+      <span class="status-dot" id="modeDot"></span>
+      <span id="modeText">Stopped</span>
+    </div>
+    <div class="status-pill">
+      <strong>🚨 Emergency</strong>
+      <span class="status-dot" id="emergencyDot" style="background:#7186a1"></span>
+      <span id="emergencyText">Off</span>
+    </div>
+    <div class="status-pill">
+      <strong>🚶 Pedestrian</strong>
+      <span class="status-dot" id="pedestrianDot" style="background:#7186a1"></span>
+      <span id="pedestrianText">Off</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="dashboard">
+    <section class="left-column">
+
+      <div class="panel">
+        <h2><span>◉</span> Live Intersection Simulation</h2>
+
+        <div class="intersection">
+          <div class="road vertical"></div>
+          <div class="road horizontal"></div>
+          <div class="lane-line vertical"></div>
+          <div class="lane-line horizontal"></div>
+          <div class="center-mark"></div>
+
+          <div class="direction-label north">↑ North</div>
+          <div class="direction-label south">↓ South</div>
+          <div class="direction-label east">East →</div>
+          <div class="direction-label west">← West</div>
+
+          <div class="signal vertical-signal north" id="visualNorth">
+            <span class="light red on"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+
+          <div class="signal vertical-signal south" id="visualSouth">
+            <span class="light red on"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+
+          <div class="signal east" id="visualEast">
+            <span class="light red on"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+
+          <div class="signal west" id="visualWest">
+            <span class="light red on"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+
+          <div class="vehicle car1">🚗</div>
+          <div class="vehicle car2">🚙</div>
+          <div class="vehicle car3">🚕</div>
+          <div class="vehicle car4">🚙</div>
+          <div class="vehicle car5">🚕</div>
+          <div class="vehicle car6">🚗</div>
+          <div class="vehicle car7">🚙</div>
+          <div class="vehicle car8">🚗</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2><span>🚘</span> Live Queue Monitor</h2>
+        <div class="queue-grid" id="queueGrid"></div>
+      </div>
+
+    </section>
+
+    <section class="right-column">
+
+      <div class="panel">
+        <h2><span>🚦</span> Traffic Light Status</h2>
+        <div class="signal-grid" id="signalGrid"></div>
+      </div>
+
+      <div class="panel">
+        <h2><span>⚙</span> Traffic Controls</h2>
+
+        <div class="controls">
+          <button class="btn btn-green" id="startBtn">▶ Start Auto</button>
+          <button class="btn btn-red" id="stopBtn">■ Stop</button>
+          <button class="btn btn-blue" id="resetBtn">↻ Reset</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="toggle-row">
+          <span>🕹 Manual Mode</span>
+          <button class="toggle" id="manualToggle" role="switch"
+            aria-checked="false" aria-label="Toggle manual mode"></button>
+        </div>
+
+        <div class="toggle-row">
+          <span>🚑 Emergency Vehicle Priority</span>
+          <button class="toggle" id="emergencyToggle" role="switch"
+            aria-checked="false" aria-label="Toggle emergency priority"></button>
+        </div>
+
+        <div class="toggle-row">
+          <span>🚶 Pedestrian Crossing</span>
+          <button class="toggle" id="pedestrianToggle" role="switch"
+            aria-checked="false" aria-label="Toggle pedestrian crossing"></button>
+        </div>
+
+        <div id="notice" class="notice">
+          System ready. Start automatic mode to cycle the traffic signals.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2><span>▥</span> Traffic Statistics</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🚘</div>
+            <div class="stat-label">Total Vehicles</div>
+            <strong id="totalVehicles">14</strong>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🚦</div>
+            <div class="stat-label">Average Queue</div>
+            <strong id="averageQueue">3.5</strong>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">◷</div>
+            <div class="stat-label">Avg. Wait Time</div>
+            <strong id="waitTime">18s</strong>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🌿</div>
+            <div class="stat-label">Flow Efficiency</div>
+            <strong id="efficiency">82%</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2><span>🎛</span> Manual Signal Control</h2>
+        <p class="subtitle" style="margin-bottom:14px">
+          Enable manual mode to select a green direction.
+        </p>
+        <div class="controls">
+          <button class="btn btn-gray manual-btn" data-direction="North">North</button>
+          <button class="btn btn-gray manual-btn" data-direction="East">East</button>
+          <button class="btn btn-gray manual-btn" data-direction="South">South</button>
+          <button class="btn btn-gray manual-btn" data-direction="West">West</button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<footer>
+  Smart Traffic Management System · Built with HTML, CSS & JavaScript
+  <br><br>
+  <span>Educational frontend simulation — not connected to real traffic hardware.</span>
+</footer>
+
+<script>
+const directions = ["North", "East", "South", "West"];
+
+const colors = {
+  Red: "#ff4d5a",
+  Yellow: "#ffca45",
+  Green: "#16d9a0"
+};
+
+let state = {
+  running: false,
+  manual: false,
+  emergency: false,
+  pedestrian: false,
+  pedestrianActive: false,
+  current: 0,
+  timer: 15,
+  elapsed: 0,
+  waitTime: 18,
+  queues: {
+    North: 4,
+    East: 3,
+    South: 2,
+    West: 5
+  }
+};
+
+let intervalId = null;
+
+const $ = id => document.getElementById(id);
+
+function getActiveDirection() {
+  if (state.pedestrianActive) return null;
+  return directions[state.current];
+}
+
+function getLight(direction) {
+  if (state.pedestrianActive) return "Red";
+
+  if (state.emergency && direction === "North") {
+    return "Green";
+  }
+
+  return direction === directions[state.current] ? "Green" : "Red";
+}
+
+function setNotice(message, warning = false) {
+  $("notice").textContent = message;
+  $("notice").classList.toggle("warning", warning);
+}
+
+function renderSignals() {
+  const activeDirection = getActiveDirection();
+
+  directions.forEach(direction => {
+    const light = state.pedestrianActive
+      ? "Red"
+      : state.emergency && direction === "North"
+        ? "Green"
+        : direction === activeDirection ? "Green" : "Red";
+
+    const cardColor = colors[light];
+    const remaining = state.running && !state.manual
+      ? state.timer + "s remaining"
+      : state.manual ? "Manual mode" : "System stopped";
+
+    const card = document.createElement("div");
+    card.className = "signal-card";
+
+    card.innerHTML = `
+      <div class="signal-preview">
+        <span class="light red ${light === "Red" ? "on" : ""}"></span>
+        <span class="light yellow"></span>
+        <span class="light green ${light === "Green" ? "on" : ""}"></span>
+      </div>
+      <div>
+        <h3>${direction}</h3>
+        <div class="signal-state" style="color:${cardColor}">${light}</div>
+        <p>${remaining}</p>
+      </div>
+    `;
+
+    if (direction === "North") {
+      // Render all cards from the current data state.
+    }
+  });
+
+  $("signalGrid").innerHTML = directions.map(direction => {
+    const light = state.pedestrianActive
+      ? "Red"
+      : state.emergency && direction === "North"
+        ? "Green"
+        : direction === activeDirection ? "Green" : "Red";
+
+    const remaining = state.running && !state.manual
+      ? state.timer + "s remaining"
+      : state.manual ? "Manual mode" : "System stopped";
+
+    return `
+      <div class="signal-card">
+        <div class="signal-preview">
+          <span class="light red ${light === "Red" ? "on" : ""}"></span>
+          <span class="light yellow"></span>
+          <span class="light green ${light === "Green" ? "on" : ""}"></span>
+        </div>
+        <div>
+          <h3>${direction}</h3>
+          <div class="signal-state state-${light.toLowerCase()}">${light}</div>
+          <p>${remaining}</p>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  directions.forEach(direction => {
+    const visual = $("visual" + direction);
+    if (!visual) return;
+
+    const light = state.pedestrianActive
+      ? "Red"
+      : state.emergency && direction === "North"
+        ? "Green"
+        : direction === activeDirection ? "Green" : "Red";
+
+    visual.querySelectorAll(".light").forEach(el => el.classList.remove("on"));
+
+    if (light === "Red") {
+      visual.querySelector(".red").classList.add("on");
+    } else {
+      visual.querySelector(".green").classList.add("on");
+    }
+  });
+
+  $("modeDot").style.background = state.running ? colors.Green : "#7186a1";
+  $("modeText").textContent = state.running ? "Active" : "Stopped";
+
+  $("emergencyDot").style.background =
+    state.emergency ? colors.Red : "#7186a1";
+  $("emergencyText").textContent = state.emergency ? "Priority active" : "Off";
+
+  $("pedestrianDot").style.background =
+    state.pedestrian ? colors.Green : "#7186a1";
+  $("pedestrianText").textContent = state.pedestrian
+    ? state.pedestrianActive ? "Crossing" : "Requested"
+    : "Off";
+}
+
+function renderQueues() {
+  $("queueGrid").innerHTML = directions.map(direction => {
+    const count = state.queues[direction];
+    const color = direction === "North" ? "#ff4d5a"
+      : direction === "East" ? "#ffca45"
+      : direction === "South" ? "#16d9a0" : "#3182f6";
+
+    const bars = Array.from({ length: 10 }, (_, i) =>
+      `<span class="queue-bar ${i < count ? "filled" : ""}"
+        style="--bar-color:${color}"></span>`
+    ).join("");
+
+    return `
+      <div class="queue-card">
+        <div class="queue-top">
+          <strong>${direction}</strong>
+          <span>${count}/10</span>
+        </div>
+        <div class="queue-bars">${bars}</div>
+        <p class="queue-count">${count} vehicles waiting</p>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderStats() {
+  const values = Object.values(state.queues);
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const average = total / values.length;
+
+  $("totalVehicles").textContent = total;
+  $("averageQueue").textContent = average.toFixed(1);
+  $("waitTime").textContent = Math.max(0, Math.round(average * 5)) + "s";
+  $("efficiency").textContent =
+    Math.max(35, Math.min(98, Math.round(100 - average * 4))) + "%";
+}
+
+function render() {
+  renderSignals();
+  renderQueues();
+  renderStats();
+}
+
+function tick() {
+  if (!state.running || state.manual) return;
+
+  state.elapsed++;
+  state.timer--;
+
+  if (state.timer <= 0) {
+    // Give the active direction a chance to clear its queue.
+    if (!state.pedestrianActive) {
+      const direction = directions[state.current];
+      state.queues[direction] = Math.max(
+        0, state.queues[direction] - 2
+      );
+    }
+
+    if (state.pedestrian) {
+      state.pedestrianActive = true;
+      state.pedestrian = false;
+      state.timer = 5;
+      setNotice("Pedestrian crossing active. All vehicle signals are red.");
+    } else if (state.pedestrianActive) {
+      state.pedestrianActive = false;
+      state.current = (state.current + 1) % directions.length;
+      state.timer = 15;
+      setNotice("Pedestrian crossing finished. Traffic cycle resumed.");
+    } else {
+      state.current = (state.current + 1) % directions.length;
+      state.timer = 15;
+
+      if (state.emergency) {
+        state.current = 0;
+        setNotice("Emergency priority active for North approach.", true);
+      } else {
+        setNotice(directions[state.current] + " direction has green light.");
+      }
+    }
+
+    // Add simulated traffic to random approaches.
+    directions.forEach(direction => {
+      if (Math.random() > 0.55) {
+        state.queues[direction] = Math.min(
+          10, state.queues[direction] + 1
+        );
+      }
+    });
+  }
+
+  render();
+}
+
+function startAuto() {
+  state.running = true;
+  state.manual = false;
+  state.timer = 15;
+  state.pedestrianActive = false;
+
+  $("manualToggle").classList.remove("active");
+  $("manualToggle").setAttribute("aria-checked", "false");
+
+  clearInterval(intervalId);
+  intervalId = setInterval(tick, 1000);
+
+  setNotice("Automatic mode running. Signals change every 15 seconds.");
+  render();
+}
+
+function stopSystem() {
+  state.running = false;
+  clearInterval(intervalId);
+  intervalId = null;
+  setNotice("System stopped. You can restart automatic mode anytime.", true);
+  render();
+}
+
+function resetSystem() {
+  clearInterval(intervalId);
+  intervalId = null;
+
+  state = {
+    running: false,
+    manual: false,
+    emergency: false,
+    pedestrian: false,
+    pedestrianActive: false,
+    current: 0,
+    timer: 15,
+    elapsed: 0,
+    waitTime: 18,
+    queues: {
+      North: 4,
+      East: 3,
+      South: 2,
+      West: 5
+    }
+  };
+
+  ["manualToggle", "emergencyToggle", "pedestrianToggle"].forEach(id => {
+    $(id).classList.remove("active");
+    $(id).setAttribute("aria-checked", "false");
+  });
+
+  setNotice("System reset successfully. Press Start Auto to begin.");
+  render();
+}
+
+function setToggle(id, active) {
+  $(id).classList.toggle("active", active);
+  $(id).setAttribute("aria-checked", String(active));
+}
+
+$("startBtn").addEventListener("click", startAuto);
+$("stopBtn").addEventListener("click", stopSystem);
+$("resetBtn").addEventListener("click", resetSystem);
+
+$("manualToggle").addEventListener("click", () => {
+  state.manual = !state.manual;
+  setToggle("manualToggle", state.manual);
+
+  if (state.manual) {
+    state.running = true;
+    clearInterval(intervalId);
+    intervalId = null;
+    state.pedestrianActive = false;
+    setNotice("Manual mode enabled. Choose a direction to set its green light.");
+  } else {
+    startAuto();
+  }
+
+  render();
+});
+
+$("emergencyToggle").addEventListener("click", () => {
+  state.emergency = !state.emergency;
+  setToggle("emergencyToggle", state.emergency);
+
+  if (state.emergency) {
+    state.current = 0;
+    state.pedestrianActive = false;
+    setNotice("Emergency priority simulated for North. This is a demo, not a real emergency service.", true);
+  } else {
+    setNotice("Emergency priority disabled.");
+  }
+
+  render();
+});
+
+$("pedestrianToggle").addEventListener("click", () => {
+  state.pedestrian = !state.pedestrian;
+  setToggle("pedestrianToggle", state.pedestrian);
+
+  if (state.pedestrian) {
+    setNotice("Pedestrian crossing requested. Crossing begins at the next cycle transition.");
+  } else {
+    state.pedestrianActive = false;
+    setNotice("Pedestrian crossing request cancelled.");
+  }
+
+  render();
+});
+
+document.querySelectorAll(".manual-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    if (!state.manual) {
+      setNotice("Enable Manual Mode first to control individual signals.", true);
+      return;
+    }
+
+    state.current = directions.indexOf(button.dataset.direction);
+    state.pedestrianActive = false;
+    state.pedestrian = false;
+    state.timer = 15;
+
+    setNotice(button.dataset.direction + " signal set to green manually.");
+    render();
+  });
+});
+
+// Start with a clear, stopped state.
+render();
+</script>
+</body>
+</html>
